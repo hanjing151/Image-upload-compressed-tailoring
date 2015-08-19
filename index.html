@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <title>图片上传压缩裁剪</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <meta name="description" content="">
+    <meta name="Keywords" content="">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="msapplication-tap-highlight" content="no">
+
+    <link rel="stylesheet" href="style/layer.css"/>
+    <link rel="stylesheet" type="text/css" href="style/cropper.min.css">
+    <link rel="stylesheet" href="style/style.css"/>
+
+    <script type="text/javascript" src="js/jquery-1.9.1.min.js"></script>
+    <!--弹出层插件-->
+    <script type="text/javascript" src="js/layer.min.js"></script>
+    <!--图片上传压缩插件-->
+    <script type="text/javascript" src="js/lrz.bundle.js"></script>
+    <!--图片裁剪插件-->
+    <script type="text/javascript" src="js/cropper.min.js"></script>
+    <!--兼容安卓和小屏幕手机-->
+    <script type="text/javascript" src="js/1.chunk.js"></script>   
+    <script type="text/javascript" src="js/2.chunk.js"></script>
+
+</head>
+<body>
+
+<div class="wrap">
+	<div style="width:100px; height: 100px; display: block; margin:100px auto">
+	    <img src="images/0.jpg" style="width:100%" onclick="upload_img()">
+	    <input id="vip-file" onchange="upload(this)" type="file" capture="camera" style="display:none;" />
+	</div>
+</div>
+
+<script>
+    //更换图片
+    function upload_img() {
+        $("#vip-file").trigger("click");
+    }
+
+    //图像压缩
+    function upload(the) {
+        lrz(the.files[0], { width: 640 })  //上传图片压缩后的最大宽度
+            .then(function (rst) {
+                // 把处理的好的图片给用户看看呗
+                var img = new Image();
+                img.src = rst.base64;
+
+                img.onload = function () {
+                    var load = layer.open({
+                        type: 1,
+                        shadeClose: false,
+                        content: '<div class="container" style="width:100%; overflow:hidden"><div class="tx-head"><a href="#" id="img-save" style="float:right; font-size:16px; margin-right:15px;">保存</a><a href="index.html" id="tx-head-close" style="width:45px; height:45px; display:block; margin-left:15px; font-size:16px;">返回</a></div><img id="base64" src="' + rst.base64 + '"></div>',
+                        style: 'width:100%; height:' + document.documentElement.clientHeight + 'px; border:none; overflow:hidden'
+                    });
+
+                    //裁剪框比例
+                    $('#base64').cropper({
+                        aspectRatio: 1 / 1,  //裁剪框比例
+                        crop: function (data) {
+
+                        },
+                        guides: false,  //是否在剪裁框上显示虚线
+                        movable: false,  //是否允许移动剪裁框
+                        resizable: false,  //是否允许改变剪裁框的大小
+                        dragCrop: false,  //是否允许移除当前的剪裁框，并通过拖动来新建一个剪裁框区域
+                        minContainerWidth: 200,  //容器的最小宽度
+                        minContainerHeight: 200  //容器的最小高度
+                    })
+
+                    //保存裁剪图片
+                    $("#img-save").click(function () {
+                        var touxiang = $('#base64').cropper('getCroppedCanvas', { width: 200, height: 200 }).toDataURL("image/jpeg", 0.9);
+                        
+                        // 进度条
+                        // var loading = layer.open({
+                        //     type: 2,
+                        //     shadeClose:false
+                        // });
+                        
+                        console.log(touxiang);  //这里是裁切后输出的图片
+
+                        // 这里该上传给后端啦
+                        // $.ajax({
+                        //     url: "?act=update",
+                        //     type: "post",
+                        //     data: { img: touxiang },//base64数据
+                        //     dataType: "json",
+                        //     success: function (date) {
+                        //         layer.close(loading);
+                        //         layer.open({
+                        //             content: '头像上传成功！',
+                        //             time: 1.5
+                        //         });
+                        //         setTimeout(function () { window.location.href="index.html"},1500);
+                        //     }
+                        // });  
+                    })
+                };
+            })
+            .catch(function (err) {
+                // 万一出错了，这里可以捕捉到错误信息
+                // 而且以上的then都不会执行
+                layer.open({
+                    content: err,
+                    time: 2
+                });
+            })
+            .always(function () {
+                // 不管是成功失败，这里都会执行
+            });
+    };
+</script>
+
+</body>
+</html>
